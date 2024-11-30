@@ -1,7 +1,11 @@
 package com.tutor_ia.back.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,31 +18,32 @@ import java.util.Map;
 public record User(
     @Id
     String email,
+    @JsonProperty("user_name")
     String userName,
     String password,
-    Chats chats
+    Map<String, Chat> chats
 ) {
-    public record Chats (
-            Map<String, Chat> chat
+    @Builder(toBuilder = true)
+    public record Chat (
+        List<Questions> questions,
+        List<String> roadmap,
+        List<String> skills,
+        List<Practice> practice
     ) {
-        public record Chat (
-                List<Questions> questions,
-                List<String> roadmap,
-                List<String> skills,
-                List<Practice> practice
-        ) {
-            public record Questions(
-                    String question,
-                    String answer,
-                    LocalDate date
-            ) {}
+        @Builder(toBuilder = true)
+        public record Questions(
+            String question,
+            String answer,
+            LocalDate date
+        ) {}
 
-            public record Practice(
-                    String instruction,
-                    List<String> topic
-            ) {}
-        }
+        @Builder(toBuilder = true)
+        public record Practice(
+            String instruction,
+            List<String> topic
+        ) {}
     }
 }
+
 
 
