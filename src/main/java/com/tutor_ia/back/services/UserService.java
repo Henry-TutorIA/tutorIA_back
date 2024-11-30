@@ -3,6 +3,9 @@ package com.tutor_ia.back.services;
 import com.tutor_ia.back.domain.User;
 import com.tutor_ia.back.domain.dto.TokenDto;
 import com.tutor_ia.back.domain.dto.UserDto;
+import com.tutor_ia.back.domain.exceptions.IncorrectPasswordException;
+import com.tutor_ia.back.domain.exceptions.UserAlreadyExistsException;
+import com.tutor_ia.back.domain.exceptions.UserNotFoundException;
 import com.tutor_ia.back.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,9 +16,9 @@ public class UserService {
 
     private UserRepository userRepository;
 
-    public TokenDto register(UserDto userDto) throws Exception {
+    public TokenDto register(UserDto userDto) {
         if (userRepository.existsById(userDto.email())) {
-            throw new Exception("Email already exists");
+            throw new UserAlreadyExistsException();
         }
 
         User user = User.builder()
@@ -29,16 +32,16 @@ public class UserService {
         return getToken(user);
     }
 
-    public TokenDto login(UserDto userDto) throws Exception {
+    public TokenDto login(UserDto userDto) {
         User userFound = userRepository.findById(userDto.email())
-                .orElseThrow(() -> new Exception("The email doesn't exist"));
+                .orElseThrow(UserNotFoundException::new);
 
-        if (!isSamePassword(userFound, userDto)) throw new Exception("Incorrect Password");
+        if (!isSamePassword(userFound, userDto)) throw new IncorrectPasswordException();
 
         return getToken(userFound);
     }
 
-    private boolean isSamePassword(User registeredUser, UserDto loginUser) throws Exception {
+    private boolean isSamePassword(User registeredUser, UserDto loginUser) {
         return registeredUser.password().equals(loginUser.password());
     }
 
