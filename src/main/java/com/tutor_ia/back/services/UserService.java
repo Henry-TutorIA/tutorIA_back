@@ -10,8 +10,8 @@ import com.tutor_ia.back.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@AllArgsConstructor
 @Service
+@AllArgsConstructor
 public class UserService {
 
     private UserRepository userRepository;
