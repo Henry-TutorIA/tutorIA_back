@@ -4,5 +4,6 @@ import com.tutor_ia.back.domain.ChatResponse;
 
 public interface IARepository {
 
-    ChatResponse<Boolean> checkTheme(String topic);
+    ChatResponse<Boolean> isValidTheme(String topic);
+
 }

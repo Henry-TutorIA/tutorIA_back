@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Locale;
+
 @RestController
 @RequestMapping("/user/chats")
 @AllArgsConstructor
@@ -13,8 +15,8 @@ public class UserChatsController {
 
     private UserChatsService userChatsService;
 
-    @GetMapping("/check-theme/{theme}")
-    public ResponseEntity<Boolean> checkTheme(@PathVariable String theme) {
-        return new ResponseEntity<>(userChatsService.checkTheme(theme), HttpStatus.OK);
+    @PostMapping("/{theme}")
+    public ResponseEntity<String> createTheme(@RequestHeader("token") String userId, @PathVariable String theme) {
+        return new ResponseEntity<>(userChatsService.createTheme(userId, theme.toLowerCase(Locale.ROOT)), HttpStatus.OK);
     }
 }
