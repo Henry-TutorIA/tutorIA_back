@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,10 +48,18 @@ public class UserChatsService {
         return theme;
     }
 
-    public List<User.Chat.Practice> leveling(String userId, String theme, List<SkillsDto> skills) {
+    public Set<User.Chat.Practice> leveling(String userId, String theme, List<SkillsDto> skills) {
         var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
-        var questions = Optional.ofNullable(iaRepository.leveling(user, theme, skills))
+        var topics = skills.stream().map(SkillsDto::name).toList();
+        var questions = user.chats().get(theme).practice()
+                .stream().filter(practice -> topics.contains(practice.topic())).collect(Collectors.toSet());
+
+        if (!questions.isEmpty()) {
+            return questions;
+        }
+
+        questions = Optional.ofNullable(iaRepository.leveling(user, theme, skills))
                 .map(ChatResponse::response)
                 .orElseThrow(() -> new InvalidValueException("questions"));
 

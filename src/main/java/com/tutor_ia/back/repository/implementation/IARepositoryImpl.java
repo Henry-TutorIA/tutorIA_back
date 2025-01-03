@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 @Log4j2
 @Repository
@@ -44,7 +45,7 @@ public class IARepositoryImpl implements IARepository {
         return ask(chatRequest, new ParameterizedTypeReference<String>() {});
     }
 
-    public ChatResponse<List<User.Chat.Practice>> leveling(User user, String theme, List<SkillsDto> skills) {
+    public ChatResponse<Set<User.Chat.Practice>> leveling(User user, String theme, List<SkillsDto> skills) {
         var question = String.format("""
                 Debes armar un array de objectos con la siguiente estructura
                 "{
@@ -70,7 +71,7 @@ public class IARepositoryImpl implements IARepository {
 
         var chatRequest = ChatRequestDto.mapToChatRequestDtoWithSkills(user, theme, question, skills);
 
-        return ask(chatRequest, new ParameterizedTypeReference<List<User.Chat.Practice>>() {});
+        return ask(chatRequest, new ParameterizedTypeReference<Set<User.Chat.Practice>>() {});
     }
 
     public ChatResponse<ScoreDto> evaluate(User user, String theme, List<User.Chat.Practice> exercises) {

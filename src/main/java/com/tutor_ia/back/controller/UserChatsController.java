@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/user/chats")
@@ -26,7 +27,7 @@ public class UserChatsController {
     }
 
     @PostMapping("/{theme}/leveling")
-    public ResponseEntity<List<User.Chat.Practice>> leveling(@RequestHeader("token") String userId, @PathVariable String theme, @RequestBody List<SkillsDto> skills) {
+    public ResponseEntity<Set<User.Chat.Practice>> leveling(@RequestHeader("token") String userId, @PathVariable String theme, @RequestBody List<SkillsDto> skills) {
         return new ResponseEntity<>(userChatsService.leveling(userId, theme.toLowerCase(Locale.ROOT), skills), HttpStatus.OK);
     }
 
