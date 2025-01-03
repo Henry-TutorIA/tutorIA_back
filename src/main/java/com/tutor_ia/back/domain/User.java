@@ -18,8 +18,7 @@ import java.util.Map;
 public record User(
     @Id
     String email,
-    @JsonProperty("user_name")
-    String userName,
+    String username,
     String password,
     Map<String, Chat> chats
 ) {
@@ -39,8 +38,9 @@ public record User(
 
         @Builder(toBuilder = true)
         public record Practice(
-            String instruction,
-            List<String> topic
+            String question,
+            String topic,
+            Boolean done
         ) {}
     }
 }
