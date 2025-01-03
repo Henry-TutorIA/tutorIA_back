@@ -9,9 +9,8 @@ public record UserDto (
     @NotBlank(message = "email cannot be blank")
     String email,
 
-    @JsonProperty("user_name")
-    @NotBlank(message = "user_name cannot be blank")
-    String userName,
+    @NotBlank(message = "username cannot be blank")
+    String username,
 
     @NotBlank(message = "password cannot be blank")
     String password

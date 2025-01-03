@@ -1,5 +1,7 @@
 package com.tutor_ia.back.controller;
 
+import com.tutor_ia.back.domain.User;
+import com.tutor_ia.back.domain.dto.ScoreDto;
 import com.tutor_ia.back.domain.dto.SkillsDto;
 import com.tutor_ia.back.services.UserChatsService;
 import lombok.AllArgsConstructor;
@@ -18,12 +20,18 @@ public class UserChatsController {
     private UserChatsService userChatsService;
 
     @PostMapping("/{theme}")
-    public ResponseEntity<String> createTheme(@RequestHeader("token") String userId, @PathVariable String theme) {
-        return new ResponseEntity<>(userChatsService.createTheme(userId, theme.toLowerCase(Locale.ROOT)), HttpStatus.OK);
+    public ResponseEntity createTheme(@RequestHeader("token") String userId, @PathVariable String theme) {
+        userChatsService.createTheme(userId, theme.toLowerCase(Locale.ROOT));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/{theme}/leveling")
-    public ResponseEntity<List<String>> leveling(@RequestHeader("token") String userId, @PathVariable String theme, @RequestBody List<SkillsDto> skills) {
+    public ResponseEntity<List<User.Chat.Practice>> leveling(@RequestHeader("token") String userId, @PathVariable String theme, @RequestBody List<SkillsDto> skills) {
         return new ResponseEntity<>(userChatsService.leveling(userId, theme.toLowerCase(Locale.ROOT), skills), HttpStatus.OK);
+    }
+
+    @PostMapping("/{theme}/evaluate")
+    public ResponseEntity<ScoreDto> evaluate(@RequestHeader("token") String userId, @PathVariable String theme, @RequestBody List<User.Chat.Practice> exercises) {
+        return new ResponseEntity<>(userChatsService.evaluate(userId, theme, exercises), HttpStatus.OK);
     }
 }

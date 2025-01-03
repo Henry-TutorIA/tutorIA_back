@@ -3,10 +3,7 @@ package com.tutor_ia.back.domain.dto;
 import com.tutor_ia.back.domain.User;
 import lombok.Builder;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Builder
 public record ChatRequestDto (
@@ -19,7 +16,7 @@ public record ChatRequestDto (
     public static ChatRequestDto mapToChatRequestDtoWithSkills(User user, String theme, String question, List<SkillsDto> skills) {
         return ChatRequestDto.builder()
                 .username(user.username())
-                .roadmap(String.join(",", Optional.ofNullable(user.chats().get(theme)).map(User.Chat::roadmap).orElse(List.of())))
+                .roadmap(String.join(",", Optional.ofNullable(user.chats().get(theme)).map(User.Chat::roadmap).map(Map::keySet).orElse(Set.of())))
                 .skills(getSkillsMap(skills))
                 .question(question)
                 .history(Map.of())
@@ -39,7 +36,7 @@ public record ChatRequestDto (
     public static ChatRequestDto mapToChatRequestDto(User user, String theme, String question) {
         return ChatRequestDto.builder()
                 .username(user.username())
-                .roadmap(String.join(",", Optional.ofNullable(user.chats().get(theme)).map(User.Chat::roadmap).orElse(List.of())))
+                .roadmap(String.join(",", Optional.ofNullable(user.chats().get(theme)).map(User.Chat::roadmap).map(Map::keySet).orElse(Set.of())))
                 .skills(Map.of())
                 .question(question)
                 .history(Map.of())

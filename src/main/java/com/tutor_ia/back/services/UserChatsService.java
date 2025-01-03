@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tutor_ia.back.domain.ChatResponse;
 import com.tutor_ia.back.domain.User;
+import com.tutor_ia.back.domain.dto.ScoreDto;
 import com.tutor_ia.back.domain.dto.SkillsDto;
 import com.tutor_ia.back.domain.exceptions.AlreadyExistsException;
 import com.tutor_ia.back.domain.exceptions.InvalidValueException;
@@ -11,6 +12,7 @@ import com.tutor_ia.back.domain.exceptions.UserNotFoundException;
 import com.tutor_ia.back.repository.IARepository;
 import com.tutor_ia.back.repository.UserRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,17 +47,57 @@ public class UserChatsService {
         return theme;
     }
 
-    public List<String> leveling(String userId, String theme, List<SkillsDto> skills) {
+    public List<User.Chat.Practice> leveling(String userId, String theme, List<SkillsDto> skills) {
         var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
-        var practices = Optional.ofNullable(iaRepository.leveling(user, theme, skills))
-                .map(ChatResponse::response);
+        var questions = Optional.ofNullable(iaRepository.leveling(user, theme, skills))
+                .map(ChatResponse::response)
+                .orElseThrow(() -> new InvalidValueException("questions"));
 
+        user.chats().get(theme).practice().addAll(questions);
+        userRepository.save(user);
 
-        return practices.map(list -> list.stream()
-                        .map(User.Chat.Practice::question)
-                        .toList())
-                .orElse(List.of());
+        return questions;
+    }
+
+    public ScoreDto evaluate(String userId, String theme, List<User.Chat.Practice> exercises) {
+        var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+        var response = Optional.ofNullable(iaRepository.evaluate(user, theme, exercises))
+                .map(ChatResponse::response)
+                .orElseThrow(() -> new InvalidValueException("exercises"));
+
+        var roadMap = user.chats().get(theme).roadmap();
+        var skills = user.chats().get(theme).skills();
+
+        var practiceUpdated = user.chats().get(theme).practice().stream()
+                .map(practice -> {
+                    if (response.doneExercises().contains(practice.question()) && !practice.done()) {
+                        var topic = practice.topic();
+                        var quantity = roadMap.getOrDefault(practice.topic(), 0) + 1;
+
+                        if (quantity >= 2) {
+                            response.skills().add(topic);
+                            skills.add(topic);
+                            roadMap.remove(topic);
+                        } else {
+                            roadMap.put(topic, quantity);
+                        }
+
+                        return practice.toBuilder().done(true).build();
+                    }
+                    return practice;
+                })
+                .collect(Collectors.toSet());
+
+        user.chats().put(theme, user.chats().get(theme).toBuilder()
+                        .roadmap(roadMap)
+                        .skills(skills)
+                        .practice(practiceUpdated)
+                .build());
+        userRepository.save(user);
+
+        return response;
     }
 
     private void createChat(User user, String theme) {
@@ -65,9 +107,9 @@ public class UserChatsService {
 
         var newChat = User.Chat.builder()
                 .questions(Collections.emptyList())
-                .roadmap(Collections.emptyList())
+                .roadmap(Collections.emptyMap())
                 .skills(Collections.emptyList())
-                .practice(Collections.emptyList())
+                .practice(Collections.emptySet())
                 .build();
 
         user.chats().put(theme, newChat);

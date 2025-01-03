@@ -25,7 +25,7 @@ public class UserService {
 
         User user = User.builder()
             .email(userDto.email())
-            .username(userDto.userName())
+            .username(userDto.username())
             .password(userDto.password())
             .chats(new HashMap<>())
             .build();
