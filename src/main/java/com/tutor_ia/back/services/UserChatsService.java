@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tutor_ia.back.domain.ChatResponse;
 import com.tutor_ia.back.domain.User;
+import com.tutor_ia.back.domain.dto.RoadMapDto;
 import com.tutor_ia.back.domain.dto.ScoreDto;
 import com.tutor_ia.back.domain.dto.SkillsDto;
 import com.tutor_ia.back.domain.exceptions.AlreadyExistsException;
@@ -18,10 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,6 +29,13 @@ public class UserChatsService {
     private final IARepository iaRepository;
 
     private final UserRepository userRepository;
+
+    public Set<String> getAllThemes(String userId) {
+        return userRepository.findById(userId)
+                .map(User::chats)
+                .map(Map::keySet)
+                .orElseThrow(UserNotFoundException::new);
+    }
 
     public String createTheme(String userId, String theme) {
         var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
@@ -99,6 +104,12 @@ public class UserChatsService {
                 })
                 .collect(Collectors.toSet());
 
+        if (roadMap.keySet().size() <= 10) {
+            response.roadmap().forEach(topic -> {
+                roadMap.put(topic, 0);
+            });
+        }
+
         user.chats().put(theme, user.chats().get(theme).toBuilder()
                         .roadmap(roadMap)
                         .skills(skills)
@@ -107,6 +118,38 @@ public class UserChatsService {
         userRepository.save(user);
 
         return response;
+    }
+
+    public List<RoadMapDto> getRoadMap(String userId, String theme) {
+        var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+
+        var roadMap = Optional.ofNullable(user.chats().get(theme))
+                .map(User.Chat::roadmap)
+                .filter(map -> !map.isEmpty())
+                .orElseGet(() -> Optional.ofNullable(iaRepository.getNewRoadMap(user, theme))
+                        .map(response -> {
+                            if (!user.chats().containsKey(theme)) {
+                                createChat(user, theme);
+                            }
+
+                            user.chats().put(theme, user.chats().get(theme).toBuilder().roadmap(response.response()).build());
+                            userRepository.save(user);
+
+                            return response.response();
+                        })
+                        .orElse(Map.of()));
+
+        var roadMapList = new ArrayList<RoadMapDto>();
+
+        roadMap.forEach((topic, progress) -> {
+            roadMapList.add(RoadMapDto
+                    .builder()
+                    .name(topic)
+                    .progress((progress / 2) * 100)
+                    .build());
+        });
+
+        return roadMapList;
     }
 
     private void createChat(User user, String theme) {

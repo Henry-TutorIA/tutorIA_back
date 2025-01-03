@@ -6,6 +6,7 @@ import com.tutor_ia.back.domain.dto.ScoreDto;
 import com.tutor_ia.back.domain.dto.SkillsDto;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface IARepository {
@@ -15,4 +16,6 @@ public interface IARepository {
     ChatResponse<Set<User.Chat.Practice>> leveling(User user, String theme, List<SkillsDto> skills);
 
     ChatResponse<ScoreDto> evaluate(User user, String theme, List<User.Chat.Practice> exercises);
+
+    ChatResponse<Map<String, Integer>> getNewRoadMap(User user, String theme);
 }

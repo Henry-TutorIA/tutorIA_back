@@ -17,6 +17,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @Log4j2
@@ -67,6 +68,7 @@ public class IARepositoryImpl implements IARepository {
                 - Si los ejercicios se parecen mucho descarta uno y genera otro mas representativo de la skill que descartaste el ejercicio
                 - Todos los ejercicios deben darse teniendo en cuenta que el usuario está buscando aprender %s
                 - Solo debes devolver los ejercicios, no debes agregar nada más ni entregar los resultados.
+                - Solo debes devolver ejercicios relacionados al tema que quiere estudiar el usuario, no mezcles con otros temas ni aprendizajes
                 """, theme);
 
         var chatRequest = ChatRequestDto.mapToChatRequestDtoWithSkills(user, theme, question, skills);
@@ -83,7 +85,8 @@ public class IARepositoryImpl implements IARepository {
                   "value": 96,
                   "doneExercises": ["topic1"],
                   "feedback": "",
-                  "skills": []
+                  "skills": [],
+                  "roadmap": ["futureTopic"]
                 }"
                 
                 IMPORTANTE:
@@ -100,8 +103,17 @@ public class IARepositoryImpl implements IARepository {
                 para que no haya mal entendidos con el usuario, en caso de que haya ejercicios sin completar, solo da un feedback de los que están con solución sin mencionar que 
                 quedan ejercicios sin completar ni que son necesarios, solo el feedback de los que están con solución, enfocandote en si se puede mejorar la solución y como
                 - El campo "skills" debe ser siempre un array vacio
+                - El campo "roadmap" tiene que ser un array de "topicos" deonde cada topico va a ser un futuro tema de estudio para lo que está intentando aprender el usuario
+                este array tiene que tener 10 lugares con distintos topicos para que el usuario intente aprende sobre el tema, teniendo en cuenta los conocimientos que 
+                creemos que tiene por las respuesta que acaba de entregar, estos topicos tienen que ir avanzando la dificultad de a poco, no tienen que abarcar todo el tema
+                a aprender sino ir de a poco aumentando la dificultad progresivamente, ten en cuenta también el roadmap que ya tiene el usuario y la skills que viene aprendiendo y practicando
+                trata de no ser repetitivo ni redundante con los temas, pero no generar temas demasiado grandes que no puedan practicarse con mas de 5 ejercicios con titulos de no mas de 5 palabras
+                y descriptivos
                 - Todos los ejercicios deben evaluarse teniendo en cuenta que el usuario está buscando aprender %s
                 - Los ejercicios son los siguientes: %s
+                - Si los ejercicios no están del todo bien, dale un puntaje de a cuerdo al grado de error, si es un error menor pueden ser entre 3 y 7 puntos menos,
+                si es un error mediano entre 6 y 12 y un error mayor entre 15 y 30, la cantidad de puntos a bajar debe ser un número al azar entre el ramgo
+                correspondiente según el nivel de error
                 - NO MENCIONES QUE QUEDAN EJERCICIOS SIN COMPLETAR, USA TODOS LOS EJERCICIOS PARA EL CAMPO "VALUE"  DANDO UN PUNTAJE TANTO CON EJERCICIOS
                  COMPLETO COMO INCOMPLETOS PERO EN EL CAMPO FEEDBACK DEBE ESTAR SOLO EL FEEDBACK DE LOS
                 EJERCICIOS QUE TIENEN EL CAMPO "ANSWER" CON ALGUN DATO, ENFOCANDOTE EN LOS QUE ESTÁN MAL
@@ -110,6 +122,27 @@ public class IARepositoryImpl implements IARepository {
         var chatRequest = ChatRequestDto.mapToChatRequestDto(user, theme, question);
 
         return ask(chatRequest, new ParameterizedTypeReference<ScoreDto>() {});
+    }
+
+    @Override
+    public ChatResponse<Map<String, Integer>> getNewRoadMap(User user, String theme) {
+        var question = String.format("""
+                Debes crear un roadmap para un usuario sin conocimientos previos, que está buscando aprender %s, debe ser de hasta 10 items,
+                escalonado y progresivo, deben ser cada uno de los topicos un tema que se pueda aprender en un dia y que se pueda practicar y entender en 2 ejercicios
+                con nombres resumidos de hasta no mas de 5 palabras y debe tener la siguiente estructura
+                "{
+                  "topic1": 0,
+                  "topic2": 0,
+                }"
+                
+                IMPORTANTE:
+                - Debe ser un mapa donde las keys son los temas a aprender y el value siempre debe ser 0
+                - Se debe crear teniendo en cuenta que el usuario no tiene conocimientos previos, por lo que debe arrancar en lo mas basico que se pueda
+                """, theme);
+
+        var chatRequest = ChatRequestDto.mapToChatRequestDto(user, theme, question);
+
+        return ask(chatRequest, new ParameterizedTypeReference<Map<String, Integer>>() {});
     }
 
     private <T> ChatResponse<T> ask(ChatRequestDto request, ParameterizedTypeReference<T> typeReference) {

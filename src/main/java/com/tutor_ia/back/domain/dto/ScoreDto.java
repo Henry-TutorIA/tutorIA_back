@@ -9,5 +9,6 @@ public record ScoreDto(
         Integer value,
         List<String> skills,
         String feedback,
-        List<String> doneExercises
+        List<String> doneExercises,
+        List<String> roadmap
 ) { }
