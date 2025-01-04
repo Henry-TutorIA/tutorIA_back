@@ -87,7 +87,7 @@ public class IARepositoryImpl implements IARepository {
                 es la skill que se está evaluando con ese ejercicio, necesito que tu respuesta tenga el siguiente formato
                 "{
                   "value": 96,
-                  "doneExercises": ["topic1"],
+                  "doneExercises": ["question1"],
                   "feedback": "",
                   "skills": [],
                   "roadmap": ["futureTopic"]
@@ -101,7 +101,8 @@ public class IARepositoryImpl implements IARepository {
                 la puntación maxima solo puede ser 50, en caso de que alguno de los demas ejercicios tenga algun punto que se pueda mejorar puede bajar mas el puntaje
                 - El campo "doneExercises" tiene que ser un array de strings, en el que cada lugar tiene una "question" que respondió correctamente el usuario
                 tiene que estar escrita exactamente igual que como fue entregada ya que luego se hace un match automatico, por lo que cualquier diferencia se va a tomar
-                como erroneo el ejercicio
+                como erroneo el ejercicio, por ejemplo, si el usuario contesto la pregunta "cuanto es 2 + 2" y el puntaje fue mayor o igual que 70, hay que agregar en ese
+                array "cuanto es 2 + 2", y asi con pregunta que resolvio correctamente el usuario
                 - El campo "feedback" debe ser una devoluación para darle al usuario, por lo que debe estar bien escrita, de una manera formal y ser pasiva y lo mas concisa
                 posible, dando puntos que se pueden mejorar y puntos debiles con respecto a la pregunta del ejercicio, sin adicionar mas temas
                 para que no haya mal entendidos con el usuario, en caso de que haya ejercicios sin completar, solo da un feedback de los que están con solución sin mencionar que 
