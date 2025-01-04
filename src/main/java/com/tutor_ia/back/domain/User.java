@@ -63,7 +63,7 @@ public record User(
         public record SkillDescription(
             String name,
             String description,
-            List<Link> documentationLink,
+            List<Link> documentationLinks,
             List<Link> practiceLinks
         ) {
             @Builder

@@ -157,7 +157,7 @@ public class IARepositoryImpl implements IARepository {
                 "{
                   "name": {skill},
                   "description": "description informativa y detallada para aprender",
-                  "documentationLink": [{"name": "documentation1", "url": "url1.com"}],
+                  "documentationLinks": [{"name": "documentation1", "url": "url1.com"}],
                   "practiceLinks": [{"name": "practice1", "url": "url2.com"}],
                 }"
                 
