@@ -4,6 +4,7 @@ import com.tutor_ia.back.domain.User;
 import lombok.Builder;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Builder
 public record ChatRequestDto (
@@ -37,7 +38,11 @@ public record ChatRequestDto (
         return ChatRequestDto.builder()
                 .username(user.username())
                 .roadmap(String.join(",", Optional.ofNullable(user.chats().get(theme)).map(User.Chat::roadmap).map(Map::keySet).orElse(Set.of())))
-                .skills(Map.of())
+                .skills(Optional.ofNullable(user.chats().get(theme))
+                        .map(User.Chat::skills)
+                        .map(skillsMap -> skillsMap.stream()
+                                .collect(Collectors.toMap(Object::toString, key -> "intermediate")))
+                        .orElse(Map.of()))
                 .question(question)
                 .history(Map.of())
                 .build();

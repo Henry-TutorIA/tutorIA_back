@@ -28,7 +28,8 @@ public record User(
         List<Questions> questions,
         Map<String, Integer> roadmap,
         List<String> skills,
-        Set<Practice> practice
+        Set<Practice> practice,
+        List<SkillDescription> skillsDescriptions
     ) {
         @Builder(toBuilder = true)
         public record Questions(
@@ -56,6 +57,20 @@ public record User(
             public int hashCode() {
                 return question != null ? question.hashCode() : 0;
             }
+        }
+
+        @Builder
+        public record SkillDescription(
+            String name,
+            String description,
+            List<Link> documentationLink,
+            List<Link> practiceLinks
+        ) {
+            @Builder
+            public record Link(
+                String name,
+                String url
+            ) { }
         }
     }
 }

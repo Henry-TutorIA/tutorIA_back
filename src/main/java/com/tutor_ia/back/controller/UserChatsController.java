@@ -40,11 +40,16 @@ public class UserChatsController {
 
     @PostMapping("/{theme}/evaluate")
     public ResponseEntity<ScoreDto> evaluate(@RequestHeader("token") String userId, @PathVariable String theme, @RequestBody List<User.Chat.Practice> exercises) {
-        return new ResponseEntity<>(userChatsService.evaluate(userId, theme, exercises), HttpStatus.OK);
+        return new ResponseEntity<>(userChatsService.evaluate(userId, theme.toLowerCase(Locale.ROOT), exercises), HttpStatus.OK);
     }
 
     @GetMapping("/{theme}/roadmap")
     public ResponseEntity<List<RoadMapDto>> getRoadMap(@RequestHeader("token") String userId, @PathVariable String theme) {
-        return new ResponseEntity<>(userChatsService.getRoadMap(userId, theme), HttpStatus.OK);
+        return new ResponseEntity<>(userChatsService.getRoadMap(userId, theme.toLowerCase(Locale.ROOT)), HttpStatus.OK);
+    }
+
+    @GetMapping("/{theme}/skill/{skill}")
+    public ResponseEntity<User.Chat.SkillDescription> getSkillDescription(@RequestHeader("token") String userId, @PathVariable String theme, @PathVariable String skill) {
+        return new ResponseEntity<>(userChatsService.getSkillDescription(userId, theme.toLowerCase(Locale.ROOT), skill.toLowerCase(Locale.ROOT)), HttpStatus.OK);
     }
 }

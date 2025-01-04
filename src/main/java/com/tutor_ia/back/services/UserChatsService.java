@@ -81,19 +81,23 @@ public class UserChatsService {
                 .map(ChatResponse::response)
                 .orElseThrow(() -> new InvalidValueException("exercises"));
 
+
+
         var roadMap = user.chats().get(theme).roadmap();
         var skills = user.chats().get(theme).skills();
+        var skillsDescriptions = user.chats().get(theme).skillsDescriptions();
 
         var practiceUpdated = user.chats().get(theme).practice().stream()
                 .map(practice -> {
                     if (response.doneExercises().contains(practice.question()) && !practice.done()) {
-                        var topic = practice.topic();
+                        var topic = practice.topic().toLowerCase(Locale.ROOT);
                         var quantity = roadMap.getOrDefault(practice.topic(), 0) + 1;
 
                         if (quantity >= 2) {
                             response.skills().add(topic);
                             skills.add(topic);
                             roadMap.remove(topic);
+                            skillsDescriptions.removeIf(description -> description.name().equalsIgnoreCase(topic));
                         } else {
                             roadMap.put(topic, quantity);
                         }
@@ -106,7 +110,7 @@ public class UserChatsService {
 
         if (roadMap.keySet().size() <= 10) {
             response.roadmap().forEach(topic -> {
-                roadMap.put(topic, 0);
+                roadMap.put(topic.toLowerCase(Locale.ROOT), 0);
             });
         }
 
@@ -114,6 +118,7 @@ public class UserChatsService {
                         .roadmap(roadMap)
                         .skills(skills)
                         .practice(practiceUpdated)
+                        .skillsDescriptions(skillsDescriptions)
                 .build());
         userRepository.save(user);
 
@@ -132,7 +137,15 @@ public class UserChatsService {
                                 createChat(user, theme);
                             }
 
-                            user.chats().put(theme, user.chats().get(theme).toBuilder().roadmap(response.response()).build());
+                            var roadMapResponse = response.response();
+                            var lowerCaseMap = roadMapResponse.entrySet()
+                                    .stream()
+                                    .collect(Collectors.toMap(
+                                            entry -> entry.getKey().toLowerCase(), // Transforma la key a minúsculas
+                                            Map.Entry::getValue // Conserva el valor
+                                    ));
+
+                            user.chats().put(theme.toLowerCase(Locale.ROOT), user.chats().get(theme).toBuilder().roadmap(lowerCaseMap).build());
                             userRepository.save(user);
 
                             return response.response();
@@ -144,12 +157,32 @@ public class UserChatsService {
         roadMap.forEach((topic, progress) -> {
             roadMapList.add(RoadMapDto
                     .builder()
-                    .name(topic)
+                    .name(topic.toLowerCase(Locale.ROOT))
                     .progress((progress / 2) * 100)
                     .build());
         });
 
         return roadMapList;
+    }
+
+    public User.Chat.SkillDescription getSkillDescription(String userId, String theme, String skill) {
+        var user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        var chat = user.chats().get(theme);
+        if (chat.roadmap().keySet().stream().noneMatch(roadmap -> roadmap.equalsIgnoreCase(skill))) {
+            throw new InvalidValueException("skill");
+        }
+
+        return chat.skillsDescriptions().stream()
+                .filter(skillDescription -> skillDescription.name().equalsIgnoreCase(skill))
+                .findFirst().orElseGet(() -> {
+                    var description = iaRepository.getNewSkillDescription(user, theme, skill).response();
+                    chat.skillsDescriptions().add(description);
+                    user.chats().put(theme.toLowerCase(Locale.ROOT), chat.toBuilder().skillsDescriptions(chat.skillsDescriptions()).build());
+
+                    userRepository.save(user);
+
+                    return description;
+                });
     }
 
     private void createChat(User user, String theme) {
@@ -162,6 +195,7 @@ public class UserChatsService {
                 .roadmap(Collections.emptyMap())
                 .skills(Collections.emptyList())
                 .practice(Collections.emptySet())
+                .skillsDescriptions(Collections.emptyList())
                 .build();
 
         user.chats().put(theme, newChat);

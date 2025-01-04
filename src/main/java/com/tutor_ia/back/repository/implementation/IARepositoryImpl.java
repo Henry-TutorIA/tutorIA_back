@@ -68,7 +68,11 @@ public class IARepositoryImpl implements IARepository {
                 - Si los ejercicios se parecen mucho descarta uno y genera otro mas representativo de la skill que descartaste el ejercicio
                 - Todos los ejercicios deben darse teniendo en cuenta que el usuario está buscando aprender %s
                 - Solo debes devolver los ejercicios, no debes agregar nada más ni entregar los resultados.
-                - Solo debes devolver ejercicios relacionados al tema que quiere estudiar el usuario, no mezcles con otros temas ni aprendizajes
+                - Solo devuelve ejercicios para el topico los topicos que se te pasaron dentro de skills, NINGUNO MAS
+                - Solo debes devolver ejercicios relacionados al tema que quiere estudiar el usuario, no mezcles con otros temas ni aprendizajes, no importa que tan simple
+                sean los ejercicios o si es dificil o facil comprobar los resultados, por ejemplo:
+                - - Si el usuario está aprendiendo a sumar, no le pidas que arme funcione que sume, solo pedile que sume ciertos números para que la respuesta pueda ser
+                lo mas simple posible
                 """, theme);
 
         var chatRequest = ChatRequestDto.mapToChatRequestDtoWithSkills(user, theme, question, skills);
@@ -103,12 +107,13 @@ public class IARepositoryImpl implements IARepository {
                 para que no haya mal entendidos con el usuario, en caso de que haya ejercicios sin completar, solo da un feedback de los que están con solución sin mencionar que 
                 quedan ejercicios sin completar ni que son necesarios, solo el feedback de los que están con solución, enfocandote en si se puede mejorar la solución y como
                 - El campo "skills" debe ser siempre un array vacio
-                - El campo "roadmap" tiene que ser un array de "topicos" deonde cada topico va a ser un futuro tema de estudio para lo que está intentando aprender el usuario
+                - El campo "roadmap" tiene que ser un array de "topicos" donde cada topico va a ser un futuro tema de estudio para lo que está intentando aprender el usuario
                 este array tiene que tener 10 lugares con distintos topicos para que el usuario intente aprende sobre el tema, teniendo en cuenta los conocimientos que 
                 creemos que tiene por las respuesta que acaba de entregar, estos topicos tienen que ir avanzando la dificultad de a poco, no tienen que abarcar todo el tema
                 a aprender sino ir de a poco aumentando la dificultad progresivamente, ten en cuenta también el roadmap que ya tiene el usuario y la skills que viene aprendiendo y practicando
                 trata de no ser repetitivo ni redundante con los temas, pero no generar temas demasiado grandes que no puedan practicarse con mas de 5 ejercicios con titulos de no mas de 5 palabras
                 y descriptivos
+                - Los valores del roadmap deben estar siemppre en minuscula y sin signos de puntaucion ni ningun tipo de acentos.
                 - Todos los ejercicios deben evaluarse teniendo en cuenta que el usuario está buscando aprender %s
                 - Los ejercicios son los siguientes: %s
                 - Si los ejercicios no están del todo bien, dale un puntaje de a cuerdo al grado de error, si es un error menor pueden ser entre 3 y 7 puntos menos,
@@ -143,6 +148,34 @@ public class IARepositoryImpl implements IARepository {
         var chatRequest = ChatRequestDto.mapToChatRequestDto(user, theme, question);
 
         return ask(chatRequest, new ParameterizedTypeReference<Map<String, Integer>>() {});
+    }
+
+    @Override
+    public ChatResponse<User.Chat.SkillDescription> getNewSkillDescription(User user, String theme, String skill) {
+        var question = String.format("""
+                Debes crear una description para una skill que está tratando de aprender el usuario, debe tener la siguiente estructura
+                "{
+                  "name": {skill},
+                  "description": "description informativa y detallada para aprender",
+                  "documentationLink": [{"name": "documentation1", "url": "url1.com"}],
+                  "practiceLinks": [{"name": "practice1", "url": "url2.com"}],
+                }"
+                
+                IMPORTANTE:
+                - La description debe tener en cuenta que el usuario está tratando de aprender %s y las skills que tiene aprendidas
+                - El campo "name" debe ser el nombre de la skill debe ser %s
+                - El campo "description" debe ser una explicación sobre la skills que está tratando de aprender el usuario, no debe tener demasiadas palabras tecnicas
+                y puede contener ejemplo para mejor compreension
+                - Los campos "documentationLinks" y "practiceLinks" deben ser arrays de objetos donde "name" es un nombre descriptivo del link al que me estás enviando y
+                "url" debe ser la url a la que pueda ir el usuario, en el campo "documentationLinks" agrega hasta 3 links que sirvan para reafirmar los conocimientos
+                sobre la skill y en "practiceLinks" hasta 3 links para poder practicar sobre este tema
+                - En caso de que no conozcas links para sugerirle al usuario, podes sugerir menos de 3, o devolver directamente el array vacio, no inventes links ni 
+                rellenes con links de información de otros temas porque pueden marear al usuario
+                """, theme, skill);
+
+        var chatRequest = ChatRequestDto.mapToChatRequestDto(user, theme, question);
+
+        return ask(chatRequest, new ParameterizedTypeReference<User.Chat.SkillDescription>() {});
     }
 
     private <T> ChatResponse<T> ask(ChatRequestDto request, ParameterizedTypeReference<T> typeReference) {

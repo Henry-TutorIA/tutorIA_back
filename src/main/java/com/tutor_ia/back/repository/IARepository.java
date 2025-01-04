@@ -18,4 +18,6 @@ public interface IARepository {
     ChatResponse<ScoreDto> evaluate(User user, String theme, List<User.Chat.Practice> exercises);
 
     ChatResponse<Map<String, Integer>> getNewRoadMap(User user, String theme);
+
+    ChatResponse<User.Chat.SkillDescription> getNewSkillDescription(User user, String theme, String skill);
 }
