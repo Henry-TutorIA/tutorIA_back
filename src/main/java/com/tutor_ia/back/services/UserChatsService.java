@@ -158,7 +158,7 @@ public class UserChatsService {
             roadMapList.add(RoadMapDto
                     .builder()
                     .name(topic.toLowerCase(Locale.ROOT))
-                    .progress((progress / 2) * 100)
+                    .progress(progress)
                     .build());
         });
 

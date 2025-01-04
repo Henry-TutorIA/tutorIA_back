@@ -51,6 +51,7 @@ public class UserService {
     private TokenDto getToken(User user) {
         return TokenDto.builder()
                 .token(user.email())
+                .username(user.username())
                 .build();
     }
 }
