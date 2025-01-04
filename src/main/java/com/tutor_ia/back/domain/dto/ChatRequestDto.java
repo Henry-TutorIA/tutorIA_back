@@ -17,7 +17,7 @@ public record ChatRequestDto (
     public static ChatRequestDto mapToChatRequestDtoWithSkills(User user, String theme, String question, List<SkillsDto> skills) {
         return ChatRequestDto.builder()
                 .username(user.username())
-                .roadmap(String.join(",", Optional.ofNullable(user.chats().get(theme)).map(User.Chat::roadmap).map(Map::keySet).orElse(Set.of())))
+                .roadmap("")
                 .skills(getSkillsMap(skills))
                 .question(question)
                 .history(Map.of())
