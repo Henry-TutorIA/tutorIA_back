@@ -4,6 +4,8 @@ RUN apt-get install openjdk-21-jdk -y
 
 COPY . .
 
+RUN chmod +x ./gradlew
+
 RUN ./gradlew build
 
 EXPOSE 8080
