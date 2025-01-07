@@ -28,6 +28,8 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
 	implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
+	implementation ("io.projectreactor.netty:reactor-netty:1.1.9")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -4,5 +4,6 @@ import lombok.Builder;
 
 @Builder
 public record TokenDto (
-   String token
+   String token,
+   String username
 ) {}

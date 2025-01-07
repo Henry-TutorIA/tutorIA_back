@@ -4,27 +4,30 @@ import com.tutor_ia.back.domain.User;
 import com.tutor_ia.back.domain.dto.TokenDto;
 import com.tutor_ia.back.domain.dto.UserDto;
 import com.tutor_ia.back.domain.exceptions.IncorrectPasswordException;
-import com.tutor_ia.back.domain.exceptions.UserAlreadyExistsException;
+import com.tutor_ia.back.domain.exceptions.AlreadyExistsException;
 import com.tutor_ia.back.domain.exceptions.UserNotFoundException;
 import com.tutor_ia.back.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-@AllArgsConstructor
+import java.util.HashMap;
+
 @Service
+@AllArgsConstructor
 public class UserService {
 
     private UserRepository userRepository;
 
     public TokenDto register(UserDto userDto) {
         if (userRepository.existsById(userDto.email())) {
-            throw new UserAlreadyExistsException();
+            throw new AlreadyExistsException("user");
         }
 
         User user = User.builder()
             .email(userDto.email())
-            .userName(userDto.userName())
+            .username(userDto.username())
             .password(userDto.password())
+            .chats(new HashMap<>())
             .build();
 
         userRepository.save(user);
@@ -47,7 +50,8 @@ public class UserService {
 
     private TokenDto getToken(User user) {
         return TokenDto.builder()
-                .token(null)
+                .token(user.email())
+                .username(user.username())
                 .build();
     }
 }
